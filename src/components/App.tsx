@@ -1,15 +1,30 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Note } from "../types/Index";
 import NoteForm from "./NoteForm";
 import NoteList from "./NoteList";
 
 function App() {
-  const [notes, setNotes] = useState<Note[]>([]);
+  const [notes, setNotes] = useState<Note[]>(()=>{
+    const storedNotes= localStorage.getItem("notes");
+    if(!storedNotes) return [];
+
+    const parsedNotes = JSON.parse(storedNotes);
+
+    return parsedNotes.map((note: Note)=>({
+      ...note,
+      timestamp: new Date(note.timestamp)
+    }));
+  });
+
   const [editingId, setEditingId] = useState<number | null>(null);
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [category, setCategory] = useState("");
+
+  useEffect(()=>{
+    localStorage.setItem("notes", JSON.stringify(notes));
+  }, [notes]);
 
   const handleDelete = (id: number): void => {
     const updatedNotes = notes.filter((note) => note.id !== id);
@@ -18,13 +33,20 @@ function App() {
 
   const addNote = (): void => {
     if (editingId !== null) {
-      const updatedNotes = notes.map((note) =>
-        note.id === editingId
-          ? { ...note, title, content, category }
-          : note
-      );
-      setNotes(updatedNotes);
-      setEditingId(null);
+const noteToUpdate = notes.find(n => n.id === editingId);
+if (!noteToUpdate) return;
+
+const updatedNote = {
+  ...noteToUpdate,
+  title,
+  content,
+  category
+};
+
+const remainingNotes = notes.filter(n => n.id !== editingId);
+
+setNotes([updatedNote, ...remainingNotes]);
+setEditingId(null);
     } else {
       const newNote: Note = {
         id: Date.now(),
@@ -33,7 +55,7 @@ function App() {
         category,
         timestamp: new Date(),
       };
-      setNotes([...notes, newNote]);
+      setNotes([ newNote, ...notes]);
     }
 
     // reset form after create or update
