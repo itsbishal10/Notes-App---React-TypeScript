@@ -37,7 +37,9 @@ The app follows a component-based architecture with a clear data flow between co
 - Controlled components for form handling  
 - Conditional rendering (Create/Update mode)  
 - Dynamic list rendering using map()  
-- State management using useState  
+- State management using useState
+- Persist notes using localStorage
+- Notes sorted in descending order (latest and recently updated on top)
 
 ---
 
